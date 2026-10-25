@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>表示テストQRシート</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+/* 左に入力、右に印刷する紙のプレビュー。せまい画面では上下に重ねる */
+:root{
+  --bg:#eef2f6; --panel:#ffffff; --fg:#1f2b36; --sub:#5a6876; --line:#cfd8e2;
+  --accent:#2f6fb0; --accent-fg:#ffffff; --ok:#2a8a50;
+  --font:"BIZ UDPGothic","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141b22; --panel:#1d2731; --fg:#e4ebf2; --sub:#9aa9b8; --line:#334352;
+    --accent:#6aa6e6; --accent-fg:#0d1720; --ok:#5cc489; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141b22; --panel:#1d2731; --fg:#e4ebf2; --sub:#9aa9b8; --line:#334352;
+  --accent:#6aa6e6; --accent-fg:#0d1720; --ok:#5cc489; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg)}
+body{
+  font-family:var(--font);font-size:16px;line-height:1.6;touch-action:manipulation;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:16px 32px;
+}
+.app{max-width:1200px;margin:0 auto;display:grid;gap:20px;grid-template-columns:1fr}
+@media (min-width:900px){.app{grid-template-columns:minmax(320px,400px) 1fr;align-items:start}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:14px;min-width:0}
+h1{font-size:22px;margin:0;text-wrap:balance}
+.hint{margin:0;color:var(--sub);font-size:14px}
+label{display:block;font-size:13px;font-weight:700;color:var(--sub);margin-bottom:4px;letter-spacing:.02em}
+input[type=text]{
+  width:100%;min-height:44px;font:inherit;font-size:16px;color:var(--fg);background:var(--bg);
+  border:1px solid var(--line);border-radius:8px;padding:8px 10px;
+}
+input[type=text]:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+fieldset{border:1px solid var(--line);border-radius:10px;padding:10px 12px 12px;margin:0;display:grid;gap:8px;min-width:0}
+legend{font-weight:700;padding:0 4px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button{
+  min-height:44px;min-width:44px;font:inherit;font-weight:700;border-radius:8px;cursor:pointer;
+  padding:8px 14px;border:1px solid var(--line);background:var(--panel);color:var(--fg);
+}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.status{min-height:1.6em;font-size:14px;color:var(--ok);font-weight:700;margin:0}
+.note{font-size:13px;color:var(--sub);margin:0}
+.preview{min-width:0;overflow-x:auto}
+
+/* ---- 紙（白黒） ---- */
+.paper{background:#ffffff;color:#000000;font-family:var(--font);padding:24px 28px;border-radius:4px;max-width:794px;margin:0 auto;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.paper h2.ttl{font-size:20px;margin:0 0 4px}
+.paper .lead{font-size:13px;margin:0 0 10px}
+.paper .item{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:start;border-top:1px solid #000;padding:14px 0}
+.paper .qr{width:150px;height:150px;border:1px solid #888}
+.paper .qr svg{display:block;width:100%;height:100%}
+.paper .qr.empty{display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;color:#444;border-style:dashed;padding:8px}
+.paper h3{font-size:17px;margin:0 0 2px}
+.paper .url{font-family:var(--mono);font-size:11px;word-break:break-all;margin:0 0 8px}
+.paper .checks{font-size:13px;line-height:2;margin:0}
+.paper .memo{font-size:13px;border-bottom:1px solid #000;padding-bottom:2px;margin-top:4px}
+@media (max-width:520px){
+  .paper{padding:16px}
+  .paper .item{grid-template-columns:110px 1fr;gap:12px}
+  .paper .qr{width:110px;height:110px}
+}
+@media print{
+  @page{size:A4;margin:10mm 5mm 5mm 15mm}
+  html,body{background:#fff;padding:0}
+  .panel,.noprint{display:none !important}
+  .app{display:block}
+  .paper{box-shadow:none;padding:0;max-width:none;font-size:12pt}
+  .paper .ttl{font-size:15pt;margin:0}
+  .paper .lead{font-size:10pt;margin:0 0 2mm}
+  .paper .item{grid-template-columns:36mm 1fr;gap:5mm;padding:2.2mm 0;break-inside:avoid}
+  .paper .qr{width:36mm;height:36mm}
+  .paper h3{font-size:12pt;margin:0}
+  .paper .url{font-size:7.5pt;margin:0 0 1mm}
+  .paper .checks{font-size:10.5pt;line-height:1.75}
+  .paper .memo{font-size:10.5pt;margin-top:1mm}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <section class="panel noprint" aria-label="入力">
+    <h1>表示テストQRシート</h1>
+    <p class="hint">URLを入れると、右のシートにQRコードがでます（5つまで）。パソコンの画面のQRコードを、生徒用iPadのカメラで読みとっても使えます。</p>
+
+    <div>
+      <label for="sheetTitle">シートの題</label>
+      <input type="text" id="sheetTitle" value="生徒用iPad 表示テスト">
+    </div>
+
+    <fieldset>
+      <legend>1</legend>
+      <div><label for="label1">名前</label><input type="text" id="label1" value="Googleサイト（個人アカ）"></div>
+      <div><label for="url1">URL</label><input type="text" id="url1" value="https://sites.google.com/view/app-sight-test" inputmode="url" autocomplete="off"></div>
+    </fieldset>
+    <fieldset>
+      <legend>2</legend>
+      <div><label for="label2">名前</label><input type="text" id="label2" value="GAS（職場アカ）"></div>
+      <div><label for="url2">URL</label><input type="text" id="url2" value="https://script.google.com/a/macros/e.osakamanabi.jp/s/AKfycbwYZFtO4YHnGhetdX6rWqHk_gzkqt9XAh_GxUkQclimcShM6vwvuzp05KKjNxJ5G75B/exec" inputmode="url" autocomplete="off"></div>
+    </fieldset>
+    <fieldset>
+      <legend>3</legend>
+      <div><label for="label3">名前</label><input type="text" id="label3" value="GAS（個人アカ）"></div>
+      <div><label for="url3">URL</label><input type="text" id="url3" value="https://script.google.com/macros/s/AKfycbw46TagGvkyaaN-njNgVc8UwtsjWeI9CAvPm8fBfQ3PXKcNbhix_dlYq2X50hUYmEeV/exec" inputmode="url" autocomplete="off"></div>
+    </fieldset>
+    <fieldset>
+      <legend>4</legend>
+      <div><label for="label4">名前</label><input type="text" id="label4" value="Cloudflare（個人アカ）"></div>
+      <div><label for="url4">URL</label><input type="text" id="url4" value="https://app-test.tofya17.workers.dev/" inputmode="url" autocomplete="off"></div>
+    </fieldset>
+    <fieldset>
+      <legend>5</legend>
+      <div><label for="label5">名前</label><input type="text" id="label5" value="Cloudflare（職場アカ）"></div>
+      <div><label for="url5">URL</label><input type="text" id="url5" value="https://testapp-shockbar.t-kuroiwah.workers.dev/" inputmode="url" autocomplete="off"></div>
+    </fieldset>
+
+    <div class="btns">
+      <button class="primary" id="printBtn" type="button">印刷する</button>
+      <button id="copyBtn" type="button">HTMLをコピーする</button>
+    </div>
+    <p class="status" id="status" aria-live="polite"></p>
+    <p class="note" id="frameNote" hidden>このプレビューの中では印刷できません。印刷するときは、ダウンロードしたファイルをパソコンのブラウザで開いて「印刷する」を押してください。</p>
+    <textarea id="copyArea" aria-hidden="true" tabindex="-1" style="position:absolute;left:-9999px;top:0;width:1px;height:1px"></textarea>
+  </section>
+
+  <div class="preview">
+    <div class="paper" id="paper"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var libOK = (typeof window.qrcode === 'function');
+  if (libOK && qrcode.stringToBytesFuncs && qrcode.stringToBytesFuncs['UTF-8']){
+    qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+  }
+
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function qrSvg(text){
+    var qr = qrcode(0, 'M');
+    qr.addData(text);
+    qr.make();
+    var n = qr.getModuleCount(), m = 4, size = n + m * 2, d = '';
+    for (var r = 0; r < n; r++){
+      for (var c = 0; c < n; c++){
+        if (qr.isDark(r, c)) d += 'M' + (c + m) + ',' + (r + m) + 'h1v1h-1z';
+      }
+    }
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + size + ' ' + size +
+      '" shape-rendering="crispEdges" role="img" aria-label="QRコード"><rect width="' + size +
+      '" height="' + size + '" fill="#ffffff"/><path d="' + d + '" fill="#000000"/></svg>';
+  }
+
+  function readData(){
+    var items = [];
+    for (var i = 1; i <= 5; i++){
+      items.push({ label: $('label' + i).value.trim(), url: $('url' + i).value.trim() });
+    }
+    return { title: $('sheetTitle').value.trim(), items: items };
+  }
+
+  function sheetInner(data){
+    var h = '<h2 class="ttl">' + esc(data.title || '表示テスト') + '</h2>' +
+      '<p class="lead">iPadのカメラでQRコードを読みとると、それぞれのページが開きます。結果に○をつけます。</p>';
+    data.items.forEach(function(it, i){
+      var qr;
+      if (!it.url){
+        qr = '<div class="qr empty">URLを入れると<br>QRコードがでます</div>';
+      } else if (!libOK){
+        qr = '<div class="qr empty">QRコードの部品を<br>読みこめませんでした</div>';
+      } else {
+        try { qr = '<div class="qr">' + qrSvg(it.url) + '</div>'; }
+        catch(e){ qr = '<div class="qr empty">URLが長すぎます</div>'; }
+      }
+      h += '<div class="item">' + qr + '<div>' +
+        '<h3>' + (i + 1) + '. ' + esc(it.label || '（名前なし）') + '</h3>' +
+        '<p class="url">' + esc(it.url || '（URL未入力）') + '</p>' +
+        '<p class="checks">ページが開いた　（ ○ ・ ✕ ）<br>ボタンが動いた　（ ○ ・ ✕ ）<br>先生用チェックの✕　（　　　　　　　　　　）</p>' +
+        '<div class="memo">メモ：</div>' +
+        '</div></div>';
+    });
+    return h;
+  }
+
+  function render(){ $('paper').innerHTML = sheetInner(readData()); }
+
+  ['sheetTitle','label1','url1','label2','url2','label3','url3','label4','url4','label5','url5'].forEach(function(id){
+    $(id).addEventListener('input', render);
+  });
+
+  // 埋めこまれた中（プレビュー）では印刷できないので案内を出す
+  var framed = true;
+  try { framed = (window.self !== window.top); } catch(e){ framed = true; }
+  if (framed){
+    $('printBtn').hidden = true;
+    $('frameNote').hidden = false;
+  }
+  $('printBtn').addEventListener('click', function(){ window.print(); });
+
+  function fullHTML(){
+    var css = document.querySelector('style').textContent;
+    var paperCss = css.slice(css.indexOf('/* ---- 紙'));
+    return '<!DOCTYPE html>\n<html lang="ja"><head><meta charset="UTF-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+      '<title>' + esc(readData().title || '表示テスト') + '</title>' +
+      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">' +
+      '<style>:root{--font:"BIZ UDPGothic","Hiragino Sans",sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace}' +
+      'body{margin:0;padding:16px;background:#fff}.noprint{display:flex;justify-content:center;margin-bottom:12px}' +
+      '.noprint button{font:inherit;font-size:18px;font-weight:700;min-height:48px;padding:8px 24px;border-radius:8px;border:1px solid #333;background:#fff;cursor:pointer}' +
+      paperCss + '</style></head><body>' +
+      '<div class="noprint"><button type="button" onclick="window.print()">印刷する</button></div>' +
+      '<div class="paper">' + sheetInner(readData()) + '</div></body></html>';
+  }
+
+  $('copyBtn').addEventListener('click', function(){
+    var html = fullHTML();
+    var ta = $('copyArea');
+    ta.value = html;
+    var ok = false;
+    try { ta.select(); ok = document.execCommand('copy'); } catch(e){ ok = false; }
+    if (ok){ $('status').textContent = 'HTMLをコピーしました'; return; }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(html).then(function(){
+        $('status').textContent = 'HTMLをコピーしました';
+      }, function(){
+        $('status').textContent = 'コピーできませんでした';
+      });
+    } else {
+      $('status').textContent = 'コピーできませんでした';
+    }
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>
