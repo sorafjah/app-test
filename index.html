@@ -2,26 +2,29 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>表示テストQRシート</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
 <style>
-/* 左に入力、右に印刷する紙のプレビュー。せまい画面では上下に重ねる */
+/* 上に端末のメモ、中央にQRつきのカード、下に持ち帰り用のテキスト */
 :root{
-  --bg:#eef2f6; --panel:#ffffff; --fg:#1f2b36; --sub:#5a6876; --line:#cfd8e2;
-  --accent:#2f6fb0; --accent-fg:#ffffff; --ok:#2a8a50;
+  --bg:#eef2f6; --panel:#ffffff; --fg:#1f2b36; --sub:#566574; --line:#cfd8e2;
+  --accent:#2f6fb0; --accent-fg:#ffffff;
+  --ok:#237a46; --ok-bg:#e1f3e8; --ng:#b4432d; --ng-bg:#fbe7e2;
   --font:"BIZ UDPGothic","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
   --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#141b22; --panel:#1d2731; --fg:#e4ebf2; --sub:#9aa9b8; --line:#334352;
-    --accent:#6aa6e6; --accent-fg:#0d1720; --ok:#5cc489; color-scheme:dark;
+    --accent:#6aa6e6; --accent-fg:#0d1720;
+    --ok:#6fd09a; --ok-bg:#1b3a2a; --ng:#f08a73; --ng-bg:#43241d; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#141b22; --panel:#1d2731; --fg:#e4ebf2; --sub:#9aa9b8; --line:#334352;
-  --accent:#6aa6e6; --accent-fg:#0d1720; --ok:#5cc489; color-scheme:dark;
+  --accent:#6aa6e6; --accent-fg:#0d1720;
+  --ok:#6fd09a; --ok-bg:#1b3a2a; --ng:#f08a73; --ng-bg:#43241d; color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{background:var(--bg);color:var(--fg)}
@@ -29,114 +32,87 @@ body{
   font-family:var(--font);font-size:16px;line-height:1.6;touch-action:manipulation;
   padding-left:max(16px, env(safe-area-inset-left, 0px));
   padding-right:max(16px, env(safe-area-inset-right, 0px));
-  padding-block:16px 32px;
+  padding-block:16px 40px;
 }
-.app{max-width:1200px;margin:0 auto;display:grid;gap:20px;grid-template-columns:1fr}
-@media (min-width:900px){.app{grid-template-columns:minmax(320px,400px) 1fr;align-items:start}}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:14px;min-width:0}
+.app{max-width:1100px;margin:0 auto;display:grid;gap:16px}
 h1{font-size:22px;margin:0;text-wrap:balance}
+h2{font-size:17px;margin:0}
 .hint{margin:0;color:var(--sub);font-size:14px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px;min-width:0}
 label{display:block;font-size:13px;font-weight:700;color:var(--sub);margin-bottom:4px;letter-spacing:.02em}
-input[type=text]{
-  width:100%;min-height:44px;font:inherit;font-size:16px;color:var(--fg);background:var(--bg);
+input[type=text],textarea{
+  width:100%;font:inherit;font-size:16px;color:var(--fg);background:var(--bg);
   border:1px solid var(--line);border-radius:8px;padding:8px 10px;
 }
-input[type=text]:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-fieldset{border:1px solid var(--line);border-radius:10px;padding:10px 12px 12px;margin:0;display:grid;gap:8px;min-width:0}
-legend{font-weight:700;padding:0 4px}
-.btns{display:flex;flex-wrap:wrap;gap:8px}
+input[type=text]{min-height:44px}
+textarea{resize:vertical}
+input:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 button{
   min-height:44px;min-width:44px;font:inherit;font-weight:700;border-radius:8px;cursor:pointer;
   padding:8px 14px;border:1px solid var(--line);background:var(--panel);color:var(--fg);
 }
 button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
-.status{min-height:1.6em;font-size:14px;color:var(--ok);font-weight:700;margin:0}
-.note{font-size:13px;color:var(--sub);margin:0}
-.preview{min-width:0;overflow-x:auto}
 
-/* ---- 紙（白黒） ---- */
-.paper{background:#ffffff;color:#000000;font-family:var(--font);padding:24px 28px;border-radius:4px;max-width:794px;margin:0 auto;box-shadow:0 1px 4px rgba(0,0,0,.15)}
-.paper h2.ttl{font-size:20px;margin:0 0 4px}
-.paper .lead{font-size:13px;margin:0 0 10px}
-.paper .item{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:start;border-top:1px solid #000;padding:14px 0}
-.paper .qr{width:150px;height:150px;border:1px solid #888}
-.paper .qr svg{display:block;width:100%;height:100%}
-.paper .qr.empty{display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;color:#444;border-style:dashed;padding:8px}
-.paper h3{font-size:17px;margin:0 0 2px}
-.paper .url{font-family:var(--mono);font-size:11px;word-break:break-all;margin:0 0 8px}
-.paper .checks{font-size:13px;line-height:2;margin:0}
-.paper .memo{font-size:13px;border-bottom:1px solid #000;padding-bottom:2px;margin-top:4px}
-@media (max-width:520px){
-  .paper{padding:16px}
-  .paper .item{grid-template-columns:110px 1fr;gap:12px}
-  .paper .qr{width:110px;height:110px}
-}
-@media print{
-  @page{size:A4;margin:10mm 5mm 5mm 15mm}
-  html,body{background:#fff;padding:0}
-  .panel,.noprint{display:none !important}
-  .app{display:block}
-  .paper{box-shadow:none;padding:0;max-width:none;font-size:12pt}
-  .paper .ttl{font-size:15pt;margin:0}
-  .paper .lead{font-size:10pt;margin:0 0 2mm}
-  .paper .item{grid-template-columns:36mm 1fr;gap:5mm;padding:2.2mm 0;break-inside:avoid}
-  .paper .qr{width:36mm;height:36mm}
-  .paper h3{font-size:12pt;margin:0}
-  .paper .url{font-size:7.5pt;margin:0 0 1mm}
-  .paper .checks{font-size:10.5pt;line-height:1.75}
-  .paper .memo{font-size:10.5pt;margin-top:1mm}
-}
+.cards{display:grid;gap:12px;grid-template-columns:1fr}
+@media (min-width:860px){.cards{grid-template-columns:1fr 1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:12px;min-width:0}
+.top{display:grid;grid-template-columns:128px 1fr;gap:12px;align-items:start}
+@media (max-width:420px){.top{grid-template-columns:104px 1fr}}
+.qr{width:100%;aspect-ratio:1;background:#ffffff;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.qr svg{display:block;width:100%;height:100%}
+.qr.empty{display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;color:#444;padding:6px}
+.name{font-size:17px;font-weight:700;margin:0;word-break:break-word}
+.url{font-family:var(--mono);font-size:11px;color:var(--sub);word-break:break-all;margin:4px 0 0}
+.row{display:grid;grid-template-columns:7.5em 1fr 1fr;gap:6px;align-items:center}
+@media (max-width:420px){.row{grid-template-columns:1fr 1fr}.row .q{grid-column:1 / -1}}
+.q{font-size:14px;font-weight:700}
+.tri{min-height:44px;font-size:15px}
+.tri[aria-pressed="true"].ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.tri[aria-pressed="true"].ng{background:var(--ng-bg);border-color:var(--ng);color:var(--ng)}
+.ngs{display:flex;flex-wrap:wrap;gap:6px}
+.chip{min-height:40px;font-size:13px;padding:6px 10px}
+.chip[aria-pressed="true"]{background:var(--ng-bg);border-color:var(--ng);color:var(--ng)}
+.sub{font-size:13px;color:var(--sub);font-weight:700;margin:0}
+details summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+.edit{display:grid;gap:12px;grid-template-columns:1fr;padding-top:4px}
+@media (min-width:860px){.edit{grid-template-columns:1fr 1fr}}
+.edit fieldset{border:1px solid var(--line);border-radius:10px;margin:0;padding:8px 10px 10px;display:grid;gap:8px;min-width:0}
+.edit legend{font-weight:700;padding:0 4px}
+.result textarea{font-family:var(--mono);font-size:14px;line-height:1.7;min-height:280px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.status{margin:0;font-weight:700;color:var(--ok);font-size:14px}
 </style>
 </head>
 <body>
 
 <div class="app">
-  <section class="panel noprint" aria-label="入力">
+  <div class="box">
     <h1>表示テストQRシート</h1>
-    <p class="hint">URLを入れると、右のシートにQRコードがでます（5つまで）。パソコンの画面のQRコードを、生徒用iPadのカメラで読みとっても使えます。</p>
-
+    <p class="hint">iPadでQRコードを読みとって開きます。開けたか、ボタンが動いたかを、ここで押して記録します。いちばん下に、家に持ち帰るためのテキストができます。入力した内容は、このブラウザに保存されます。</p>
     <div>
-      <label for="sheetTitle">シートの題</label>
-      <input type="text" id="sheetTitle" value="生徒用iPad 表示テスト">
+      <label for="device">いつ・どこで・どのiPad（メモ）</label>
+      <input type="text" id="device" placeholder="例：2組の教室 iPad No.3 学校Wi-Fi" autocomplete="off">
     </div>
+  </div>
 
-    <fieldset>
-      <legend>1</legend>
-      <div><label for="label1">名前</label><input type="text" id="label1" value="Googleサイト（個人アカ）"></div>
-      <div><label for="url1">URL</label><input type="text" id="url1" value="https://sites.google.com/view/app-sight-test" inputmode="url" autocomplete="off"></div>
-    </fieldset>
-    <fieldset>
-      <legend>2</legend>
-      <div><label for="label2">名前</label><input type="text" id="label2" value="GAS（職場アカ）"></div>
-      <div><label for="url2">URL</label><input type="text" id="url2" value="https://script.google.com/a/macros/e.osakamanabi.jp/s/AKfycbwYZFtO4YHnGhetdX6rWqHk_gzkqt9XAh_GxUkQclimcShM6vwvuzp05KKjNxJ5G75B/exec" inputmode="url" autocomplete="off"></div>
-    </fieldset>
-    <fieldset>
-      <legend>3</legend>
-      <div><label for="label3">名前</label><input type="text" id="label3" value="GAS（個人アカ）"></div>
-      <div><label for="url3">URL</label><input type="text" id="url3" value="https://script.google.com/macros/s/AKfycbw46TagGvkyaaN-njNgVc8UwtsjWeI9CAvPm8fBfQ3PXKcNbhix_dlYq2X50hUYmEeV/exec" inputmode="url" autocomplete="off"></div>
-    </fieldset>
-    <fieldset>
-      <legend>4</legend>
-      <div><label for="label4">名前</label><input type="text" id="label4" value="Cloudflare（個人アカ）"></div>
-      <div><label for="url4">URL</label><input type="text" id="url4" value="https://app-test.tofya17.workers.dev/" inputmode="url" autocomplete="off"></div>
-    </fieldset>
-    <fieldset>
-      <legend>5</legend>
-      <div><label for="label5">名前</label><input type="text" id="label5" value="Cloudflare（職場アカ）"></div>
-      <div><label for="url5">URL</label><input type="text" id="url5" value="https://testapp-shockbar.t-kuroiwah.workers.dev/" inputmode="url" autocomplete="off"></div>
-    </fieldset>
+  <div class="cards" id="cards"></div>
 
+  <div class="box result">
+    <h2>持ち帰り用のテキスト</h2>
+    <p class="hint">「コピーする」を押して、自分あてのメールやLINE、メモに貼り付けると家で見られます。</p>
+    <textarea id="out" readonly aria-label="結果のテキスト"></textarea>
     <div class="btns">
-      <button class="primary" id="printBtn" type="button">印刷する</button>
-      <button id="copyBtn" type="button">HTMLをコピーする</button>
+      <button class="primary" id="copyBtn" type="button">コピーする</button>
+      <button id="clearBtn" type="button">ぜんぶ消す</button>
+      <p class="status" id="status" aria-live="polite"></p>
     </div>
-    <p class="status" id="status" aria-live="polite"></p>
-    <p class="note" id="frameNote" hidden>このプレビューの中では印刷できません。印刷するときは、ダウンロードしたファイルをパソコンのブラウザで開いて「印刷する」を押してください。</p>
-    <textarea id="copyArea" aria-hidden="true" tabindex="-1" style="position:absolute;left:-9999px;top:0;width:1px;height:1px"></textarea>
-  </section>
+  </div>
 
-  <div class="preview">
-    <div class="paper" id="paper"></div>
+  <div class="box">
+    <details>
+      <summary>URLをかえる</summary>
+      <div class="edit" id="edit"></div>
+    </details>
   </div>
 </div>
 
@@ -144,10 +120,47 @@ button.primary{background:var(--accent);border-color:var(--accent);color:var(--a
 <script>
 (function(){
   var $ = function(id){ return document.getElementById(id); };
+  var KEY = 'qrsheet-v2';
   var libOK = (typeof window.qrcode === 'function');
   if (libOK && qrcode.stringToBytesFuncs && qrcode.stringToBytesFuncs['UTF-8']){
     qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
   }
+
+  var NGS = [
+    {k:'store', t:'保存'},
+    {k:'cdn',   t:'ライブラリ'},
+    {k:'font',  t:'文字の形'},
+    {k:'gh',    t:'github.io'},
+    {k:'cam',   t:'カメラ'}
+  ];
+
+  var DEFAULTS = [
+    {label:'Googleサイト（個人アカ）', url:'https://sites.google.com/view/app-sight-test'},
+    {label:'GAS（職場アカ）', url:'https://script.google.com/a/macros/e.osakamanabi.jp/s/AKfycbwYZFtO4YHnGhetdX6rWqHk_gzkqt9XAh_GxUkQclimcShM6vwvuzp05KKjNxJ5G75B/exec'},
+    {label:'GAS（個人アカ）', url:'https://script.google.com/macros/s/AKfycbw46TagGvkyaaN-njNgVc8UwtsjWeI9CAvPm8fBfQ3PXKcNbhix_dlYq2X50hUYmEeV/exec'},
+    {label:'Cloudflare（個人アカ）', url:'https://app-test.tofya17.workers.dev/'},
+    {label:'Cloudflare（職場アカ）', url:'https://testapp-shockbar.t-kuroiwah.workers.dev/'}
+  ];
+
+  function blankState(){
+    return {
+      device:'',
+      items: DEFAULTS.map(function(d){
+        return {label:d.label, url:d.url, page:'', btn:'', ng:{}, memo:''};
+      })
+    };
+  }
+
+  var state = blankState();
+  try{
+    var raw = localStorage.getItem(KEY);
+    if (raw){
+      var s = JSON.parse(raw);
+      if (s && s.items && s.items.length === DEFAULTS.length) state = s;
+    }
+  }catch(e){}
+
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
 
   function esc(s){
     return String(s).replace(/[&<>"']/g, function(c){
@@ -170,86 +183,138 @@ button.primary{background:var(--accent);border-color:var(--accent);color:var(--a
       '" height="' + size + '" fill="#ffffff"/><path d="' + d + '" fill="#000000"/></svg>';
   }
 
-  function readData(){
-    var items = [];
-    for (var i = 1; i <= 5; i++){
-      items.push({ label: $('label' + i).value.trim(), url: $('url' + i).value.trim() });
-    }
-    return { title: $('sheetTitle').value.trim(), items: items };
+  function qrBlock(url){
+    if (!url) return '<div class="qr empty">URLを入れると<br>QRコードがでます</div>';
+    if (!libOK) return '<div class="qr empty">QRコードの部品を<br>読みこめませんでした</div>';
+    try { return '<div class="qr">' + qrSvg(url) + '</div>'; }
+    catch(e){ return '<div class="qr empty">URLが長すぎます</div>'; }
   }
 
-  function sheetInner(data){
-    var h = '<h2 class="ttl">' + esc(data.title || '表示テスト') + '</h2>' +
-      '<p class="lead">iPadのカメラでQRコードを読みとると、それぞれのページが開きます。結果に○をつけます。</p>';
-    data.items.forEach(function(it, i){
-      var qr;
-      if (!it.url){
-        qr = '<div class="qr empty">URLを入れると<br>QRコードがでます</div>';
-      } else if (!libOK){
-        qr = '<div class="qr empty">QRコードの部品を<br>読みこめませんでした</div>';
-      } else {
-        try { qr = '<div class="qr">' + qrSvg(it.url) + '</div>'; }
-        catch(e){ qr = '<div class="qr empty">URLが長すぎます</div>'; }
-      }
-      h += '<div class="item">' + qr + '<div>' +
-        '<h3>' + (i + 1) + '. ' + esc(it.label || '（名前なし）') + '</h3>' +
-        '<p class="url">' + esc(it.url || '（URL未入力）') + '</p>' +
-        '<p class="checks">ページが開いた　（ ○ ・ ✕ ）<br>ボタンが動いた　（ ○ ・ ✕ ）<br>先生用チェックの✕　（　　　　　　　　　　）</p>' +
-        '<div class="memo">メモ：</div>' +
-        '</div></div>';
+  function triRow(i, key, label){
+    var v = state.items[i][key];
+    return '<div class="row"><div class="q">' + label + '</div>' +
+      '<button type="button" class="tri ok" data-i="' + i + '" data-k="' + key + '" data-v="ok" aria-pressed="' + (v === 'ok') + '">○ できた</button>' +
+      '<button type="button" class="tri ng" data-i="' + i + '" data-k="' + key + '" data-v="ng" aria-pressed="' + (v === 'ng') + '">✕ だめ</button></div>';
+  }
+
+  function renderCards(){
+    var h = '';
+    state.items.forEach(function(it, i){
+      h += '<section class="card" aria-label="' + esc(it.label) + '">' +
+        '<div class="top">' + qrBlock(it.url) +
+        '<div><p class="name">' + (i + 1) + '. ' + esc(it.label) + '</p><p class="url">' + esc(it.url) + '</p></div></div>' +
+        triRow(i, 'page', 'ページが開いた') +
+        triRow(i, 'btn', 'ボタンが動いた') +
+        '<div><p class="sub">先生用の表で✕だったところ</p><div class="ngs">' +
+        NGS.map(function(n){
+          return '<button type="button" class="chip" data-i="' + i + '" data-ng="' + n.k + '" aria-pressed="' + (!!it.ng[n.k]) + '">' + n.t + '</button>';
+        }).join('') + '</div></div>' +
+        '<div><label for="memo' + i + '">メモ</label><input type="text" id="memo' + i + '" data-memo="' + i + '" value="' + esc(it.memo) + '" autocomplete="off"></div>' +
+        '</section>';
     });
-    return h;
+    $('cards').innerHTML = h;
   }
 
-  function render(){ $('paper').innerHTML = sheetInner(readData()); }
+  function renderEdit(){
+    var h = '';
+    state.items.forEach(function(it, i){
+      h += '<fieldset><legend>' + (i + 1) + '</legend>' +
+        '<div><label for="el' + i + '">名前</label><input type="text" id="el' + i + '" data-el="' + i + '" value="' + esc(it.label) + '" autocomplete="off"></div>' +
+        '<div><label for="eu' + i + '">URL</label><input type="text" id="eu' + i + '" data-eu="' + i + '" value="' + esc(it.url) + '" inputmode="url" autocomplete="off"></div>' +
+        '</fieldset>';
+    });
+    $('edit').innerHTML = h;
+  }
 
-  ['sheetTitle','label1','url1','label2','url2','label3','url3','label4','url4','label5','url5'].forEach(function(id){
-    $(id).addEventListener('input', render);
+  function stamp(){
+    var d = new Date(), t = (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + d.getHours() + '時';
+    if (d.getMinutes() !== 0) t += d.getMinutes() + '分';
+    return t;
+  }
+  function mark(v){ return v === 'ok' ? '○' : (v === 'ng' ? '✕' : '－'); }
+
+  function buildText(){
+    var t = '【表示テスト結果】' + stamp() + '\n';
+    t += '場所・端末：' + (state.device || '（未入力）') + '\n';
+    state.items.forEach(function(it, i){
+      var ngs = NGS.filter(function(n){ return it.ng[n.k]; }).map(function(n){ return n.t; });
+      var ngText = ngs.length ? ngs.join('・') : (it.page === 'ok' ? 'なし' : '－');
+      t += '\n' + (i + 1) + '. ' + it.label + '\n' +
+        '　ページ：' + mark(it.page) + '　ボタン：' + mark(it.btn) + '\n' +
+        '　先生用の✕：' + ngText + '\n';
+      if (it.memo) t += '　メモ：' + it.memo + '\n';
+    });
+    return t;
+  }
+
+  function refreshOut(){ $('out').value = buildText(); }
+
+  // ボタン類（まとめて受ける）
+  $('cards').addEventListener('click', function(e){
+    var b = e.target.closest('button');
+    if (!b) return;
+    var i = +b.getAttribute('data-i');
+    if (b.hasAttribute('data-k')){
+      var k = b.getAttribute('data-k'), v = b.getAttribute('data-v');
+      state.items[i][k] = (state.items[i][k] === v) ? '' : v;
+    } else if (b.hasAttribute('data-ng')){
+      var g = b.getAttribute('data-ng');
+      state.items[i].ng[g] = !state.items[i].ng[g];
+    } else { return; }
+    save(); renderCards(); refreshOut();
   });
 
-  // 埋めこまれた中（プレビュー）では印刷できないので案内を出す
-  var framed = true;
-  try { framed = (window.self !== window.top); } catch(e){ framed = true; }
-  if (framed){
-    $('printBtn').hidden = true;
-    $('frameNote').hidden = false;
-  }
-  $('printBtn').addEventListener('click', function(){ window.print(); });
-
-  function fullHTML(){
-    var css = document.querySelector('style').textContent;
-    var paperCss = css.slice(css.indexOf('/* ---- 紙'));
-    return '<!DOCTYPE html>\n<html lang="ja"><head><meta charset="UTF-8">' +
-      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-      '<title>' + esc(readData().title || '表示テスト') + '</title>' +
-      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">' +
-      '<style>:root{--font:"BIZ UDPGothic","Hiragino Sans",sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace}' +
-      'body{margin:0;padding:16px;background:#fff}.noprint{display:flex;justify-content:center;margin-bottom:12px}' +
-      '.noprint button{font:inherit;font-size:18px;font-weight:700;min-height:48px;padding:8px 24px;border-radius:8px;border:1px solid #333;background:#fff;cursor:pointer}' +
-      paperCss + '</style></head><body>' +
-      '<div class="noprint"><button type="button" onclick="window.print()">印刷する</button></div>' +
-      '<div class="paper">' + sheetInner(readData()) + '</div></body></html>';
-  }
-
-  $('copyBtn').addEventListener('click', function(){
-    var html = fullHTML();
-    var ta = $('copyArea');
-    ta.value = html;
-    var ok = false;
-    try { ta.select(); ok = document.execCommand('copy'); } catch(e){ ok = false; }
-    if (ok){ $('status').textContent = 'HTMLをコピーしました'; return; }
-    if (navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(html).then(function(){
-        $('status').textContent = 'HTMLをコピーしました';
-      }, function(){
-        $('status').textContent = 'コピーできませんでした';
-      });
-    } else {
-      $('status').textContent = 'コピーできませんでした';
+  $('cards').addEventListener('input', function(e){
+    var el = e.target;
+    if (el.hasAttribute('data-memo')){
+      state.items[+el.getAttribute('data-memo')].memo = el.value;
+      save(); refreshOut();
     }
   });
 
-  render();
+  $('device').addEventListener('input', function(){
+    state.device = $('device').value; save(); refreshOut();
+  });
+
+  $('edit').addEventListener('input', function(e){
+    var el = e.target;
+    if (el.hasAttribute('data-el')) state.items[+el.getAttribute('data-el')].label = el.value.trim();
+    if (el.hasAttribute('data-eu')) state.items[+el.getAttribute('data-eu')].url = el.value.trim();
+    save(); renderCards(); refreshOut();
+  });
+
+  // コピー
+  $('copyBtn').addEventListener('click', function(){
+    refreshOut();
+    var ta = $('out'), ok = false;
+    try { ta.focus(); ta.select(); ta.setSelectionRange(0, ta.value.length); ok = document.execCommand('copy'); } catch(e){ ok = false; }
+    function done(good){
+      $('status').textContent = good ? 'コピーしました' : 'コピーできませんでした。文字を長押しして選んでください';
+    }
+    if (ok) return done(true);
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(ta.value).then(function(){ done(true); }, function(){ done(false); });
+    } else { done(false); }
+  });
+
+  // ぜんぶ消す（2回押し）
+  var armed = false, armTimer = null;
+  $('clearBtn').addEventListener('click', function(){
+    var b = $('clearBtn');
+    if (!armed){
+      armed = true;
+      b.textContent = 'もういちど押すと消えます';
+      armTimer = setTimeout(function(){ armed = false; b.textContent = 'ぜんぶ消す'; }, 4000);
+      return;
+    }
+    clearTimeout(armTimer); armed = false; b.textContent = 'ぜんぶ消す';
+    state = blankState(); save();
+    $('device').value = ''; $('status').textContent = '';
+    renderCards(); renderEdit(); refreshOut();
+  });
+
+  $('device').value = state.device || '';
+  renderCards(); renderEdit(); refreshOut();
 })();
 </script>
 
